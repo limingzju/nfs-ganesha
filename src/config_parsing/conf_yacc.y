@@ -80,7 +80,7 @@ void ganesha_yyerror(YYLTYPE *yylloc_param,
 		     void *yyscanner,
 		     char*);
 
-struct glist_head all_blocks;
+extern struct glist_head all_blocks;
 
 struct config_node *config_block(char *blockname,
 				 struct config_node *list,

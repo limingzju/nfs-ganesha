@@ -38,6 +38,8 @@
 #include "log.h"
 #include "fsal_convert.h"
 
+struct glist_head all_blocks;
+
 /* config_ParseFile:
  * Reads the content of a configuration file and
  * stores it in a memory structure.
@@ -130,7 +132,7 @@ char *err_type_str(struct config_error_type *err_type)
 	FILE *fp;
 
 	if (config_error_no_error(err_type))
-		return gsh_strdup("(no errors)");
+		return strdup("(no errors)");
 	fp = open_memstream(&buf, &bufsize);
 	if (fp == NULL) {
 		LogCrit(COMPONENT_CONFIG,
@@ -263,7 +265,7 @@ void report_config_errors(struct config_error_type *err_type, void *dest,
 			break;
 		}
 	}
-	gsh_free(err_type->diag_buf);
+	free(err_type->diag_buf);
 	err_type->diag_buf = NULL;
 }
 
@@ -1968,7 +1970,7 @@ int load_config_from_parse(config_file_t config,
 			 errstr != NULL ? errstr : "unknown",
 			 blkname);
 		if (errstr != NULL)
-			gsh_free(errstr);
+			free(errstr);
 	}
 	return found;
 }

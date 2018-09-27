@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
 				errstr != NULL ? errstr : "unknown",
 				config_path);
 		if (errstr != NULL)
-			gsh_free(errstr);
+			free(errstr);
 	}
 
 	if (read_log_config(config_struct, &err_type) < 0) {
