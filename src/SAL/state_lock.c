@@ -2602,6 +2602,9 @@ state_status_t state_lock(struct fsal_obj_handle *obj,
 
 		/* A lock downgrade could unblock blocked locks */
 		grant_blocked_locks(obj->state_hdl);
+		if (block_data)
+			gsh_free(block_data);
+
 	} else if (status == STATE_LOCK_CONFLICT) {
 		LogEntry("Conflict in FSAL for", found_entry);
 
