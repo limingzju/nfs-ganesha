@@ -465,6 +465,12 @@ static void do_shutdown(void)
 	(void)svc_shutdown(SVC_SHUTDOWN_FLAG_NONE);
 
 	LogEvent(COMPONENT_MAIN, "Stopping worker threads");
+
+#ifdef USE_CONTROL_SOCKET
+	LogEvent(COMPONENT_MAIN, "Stopping control socket thread");
+	gsh_control_thread_shutdown = 1;
+#endif
+
 #ifdef _USE_9P
 	if (nfs_param.core_param.core_options & CORE_OPTION_9P) {
 		rc = _9p_worker_shutdown();
