@@ -109,7 +109,8 @@ static int unload_fsal(struct fsal_module *fsal_hdl)
 	glist_del(&fsal_hdl->fsals);
 	PTHREAD_RWLOCK_destroy(&fsal_hdl->lock);
 
-	retval = dlclose(fsal_hdl->dl_handle);
+	/* Do not dlclose FSAL plugins to avoid conflict w/ libpthread */
+	retval = 0;
 	PTHREAD_MUTEX_unlock(&fsal_lock);
 	return retval;
 
