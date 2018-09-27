@@ -19,6 +19,10 @@ if(USE_FSAL_RGW)
   add_subdirectory(FSAL_RGW)
 endif(USE_FSAL_RGW)
 
+if(USE_FSAL_NEDGE)
+  add_subdirectory(FSAL_NEDGE)
+endif(USE_FSAL_NEDGE)
+
 if(USE_FSAL_GPFS)
   add_subdirectory(FSAL_GPFS)
 endif(USE_FSAL_GPFS)
