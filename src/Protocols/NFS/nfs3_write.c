@@ -232,6 +232,12 @@ int nfs3_write(nfs_arg_t *arg, struct svc_req *req, nfs_res_t *res)
 				  &sync,
 				  NULL);
 
+	/** [NEDGE FSAL SPECIAL]
+	 * Pass the buffer ownership to FSAL. FSAL will free it when done.
+	 */
+	arg->arg_write3.data.data_val = NULL;
+	data = NULL;
+
 	if (FSAL_IS_ERROR(fsal_status)) {
 		/* If we are here, there was an error */
 		LogFullDebug(COMPONENT_NFSPROTO,
