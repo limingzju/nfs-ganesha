@@ -85,6 +85,12 @@ static struct config_item core_params[] = {
 		       nfs_core_param, port[P_RQUOTA]),
 	CONF_ITEM_IP_ADDR("Bind_Addr", "0.0.0.0",
 			  nfs_core_param, bind_addr),
+#ifdef USE_CONTROL_SOCKET
+	CONF_ITEM_UI16("Control_Socket_Port", 0, UINT16_MAX, 980,
+		       nfs_core_param, control_socket_port),
+	CONF_ITEM_STR("Control_Socket_Bind_Addr", 1, MAXHOSTNAMELEN,
+	    "localhost", nfs_core_param, control_socket_bind_addr),
+#endif /* USE_CONTROL_SOCKET */
 	CONF_ITEM_UI32("NFS_Program", 1, INT32_MAX, NFS_PROGRAM,
 		       nfs_core_param, program[P_NFS]),
 	CONF_ITEM_UI32("MNT_Program", 1, INT32_MAX, MOUNTPROG,

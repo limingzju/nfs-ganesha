@@ -233,6 +233,8 @@ option(TIRPC_EPOLL "platform supports EPOLL or emulation" ON)
 # Build configure options
 goption(USE_DBUS "enable DBUS protocol support" ON)
 
+option(USE_CONTROL_SOCKET "build with Control Socket support" OFF)
+
 # Various DBUS enabled features
 option(USE_CB_SIMULATOR "enable callback simulator thread" OFF)
 
@@ -1107,6 +1109,13 @@ if(USE_LTTNG)
   add_subdirectory(tracing)
 endif(USE_LTTNG)
 
+if(USE_CONTROL_SOCKET)
+    add_definitions(
+	-DUSE_CONTROL_SOCKET
+    )
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_CONTROL_SOCKET")
+endif(USE_CONTROL_SOCKET)
+
 add_subdirectory(scripts)
 add_subdirectory(doc)
 # display configuration vars
@@ -1143,6 +1152,7 @@ message(STATUS "USE_SYSTEM_NTIRPC = ${USE_SYSTEM_NTIRPC}")
 message(STATUS "USE_DBUS = ${USE_DBUS}")
 message(STATUS "USE_CB_SIMULATOR = ${USE_CB_SIMULATOR}")
 message(STATUS "USE_NFSIDMAP = ${USE_NFSIDMAP}")
+message(STATUS "USE_CONTROL_SOCKET = ${USE_CONTROL_SOCKET}")
 message(STATUS "ENABLE_ERROR_INJECTION = ${ENABLE_ERROR_INJECTION}")
 message(STATUS "ENABLE_VFS_DEBUG_ACL = ${ENABLE_VFS_DEBUG_ACL}")
 message(STATUS "ENABLE_RFC_ACL = ${ENABLE_RFC_ACL}")
@@ -1199,6 +1209,11 @@ message(STATUS "SANITIZE_ADDRESS = ${SANITIZE_ADDRESS}")
 set(USE_CB_SIMULATOR ${USE_CB_SIMULATOR}
   CACHE BOOL
    "enable callback simulator thread"
+   FORCE)
+
+set(USE_CONTROL_SOCKET ${USE_CONTROL_SOCKET}
+  CACHE BOOL
+   "enable Control Socket support"
    FORCE)
 
 set(DEBUG_SAL ${DEBUG_SAL}
