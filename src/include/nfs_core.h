@@ -180,6 +180,12 @@ void nfs_Init_admin_thread(void);
 void *admin_thread(void *UnusedArg);
 void admin_halt(void);
 
+#ifdef USE_CONTROL_SOCKET
+/* in gsh_control_thread.c */
+void *gsh_control_thread(void *UnusedArg);
+extern int gsh_control_thread_shutdown;
+#endif /* USE_CONTROL_SOCKET */
+
 /* Tools */
 
 int compare_state_id(struct gsh_buffdesc *buff1, struct gsh_buffdesc *buff2);

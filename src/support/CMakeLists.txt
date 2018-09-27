@@ -59,6 +59,12 @@ SET(support_STAT_SRCS
    server_stats.c
    export_mgr.c
 )
+if(USE_CONTROL_SOCKET)
+  set(support_STAT_SRCS
+    ${support_STAT_SRCS}
+    gsh_control_thread.c
+    )
+endif(USE_CONTROL_SOCKET)
 
 if(ERROR_INJECTION)
   set(support_STAT_SRCS

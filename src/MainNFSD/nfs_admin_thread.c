@@ -458,6 +458,11 @@ static void do_shutdown(void)
 
 	LogEvent(COMPONENT_MAIN, "Stopping worker threads");
 
+#ifdef USE_CONTROL_SOCKET
+	LogEvent(COMPONENT_MAIN, "Stopping control socket thread");
+	gsh_control_thread_shutdown = 1;
+#endif
+
 #ifdef _USE_9P
 	rc = _9p_worker_shutdown();
 

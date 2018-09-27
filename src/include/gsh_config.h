@@ -201,6 +201,15 @@ typedef struct nfs_core_param {
 	/** The IPv4 or IPv6 address to which to bind for our
 	    listening port.  Set by the Bind_Addr option. */
 	struct sockaddr_storage bind_addr;
+#ifdef USE_CONTROL_SOCKET
+	/** A port number, of control socket. Set by the Control_Socket_Port.
+	    Defaults to 980. */
+	uint16_t control_socket_port;
+	/** The address to which to bind for control socket listening port.
+	    IPv4 only, for now.  Set by the Control_Socket_Bind_Addr option.
+	    Defaults to "localhost". */
+	char *control_socket_bind_addr;
+#endif
 	/** An array of RPC program numbers.  The correct values, by
 	    default, they may be set to incorrect values with the
 	    NFS_Program, MNT_Program, NLM_Program, and

@@ -102,6 +102,9 @@ nfs_start_info_t nfs_start_info;
 
 pthread_t admin_thrid;
 pthread_t sigmgr_thrid;
+#ifdef USE_CONTROL_SOCKET
+extern pthread_t gsh_control_thrid;
+#endif /* USE_CONTROL_SOCKET */
 
 tirpc_pkg_params ntirpc_pp = {
 	TIRPC_DEBUG_FLAG_DEFAULT,
@@ -598,6 +601,18 @@ static void nfs_Start_threads(void)
 	LogEvent(COMPONENT_THREAD, "gsh_dbusthread was started successfully");
 #endif
 
+#ifdef USE_CONTROL_SOCKET
+	gsh_control_thread_shutdown = 0;
+	/* Control socket thread */
+	rc = pthread_create(&gsh_control_thrid, &attr_thr, gsh_control_thread, NULL);
+	if (rc != 0) {
+		LogFatal(COMPONENT_THREAD,
+			 "Could not create gsh_control_thread, error = %d (%s)",
+			 errno, strerror(errno));
+	}
+	LogEvent(COMPONENT_THREAD, "gsh_control_thread was started successfully");
+#endif /* USE_CONTROL_SOCKET */
+
 	/* Starting the admin thread */
 	rc = pthread_create(&admin_thrid, &attr_thr, admin_thread, NULL);
 	if (rc != 0) {
@@ -972,6 +987,11 @@ void nfs_start(nfs_start_info_t *p_start_info)
 	/* Wait for dispatcher to exit */
 	LogDebug(COMPONENT_THREAD, "Wait for admin thread to exit");
 	pthread_join(admin_thrid, NULL);
+
+#ifdef USE_CONTROL_SOCKET
+	LogDebug(COMPONENT_MAIN, "Wait for control socket thread to exit");
+	pthread_join(gsh_control_thrid, NULL);
+#endif
 
 	/* Regular exit */
 	LogEvent(COMPONENT_MAIN, "NFS EXIT: regular exit");
