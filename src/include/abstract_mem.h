@@ -42,6 +42,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#ifdef USE_JE_MALLOC
+#include <jemalloc/jemalloc.h>
+#else
+#define je_free		free
+#define je_posix_memalign	posix_memalign
+#define je_malloc	malloc
+#define je_calloc	calloc
+#define je_realloc	realloc
+#endif
+
 #include "log.h"
 
 /**
@@ -75,7 +86,7 @@ static inline void *
 gsh_malloc__(size_t n,
 	     const char *file, int line, const char *function)
 {
-	void *p = malloc(n);
+	void *p = je_malloc(n);
 
 	if (p == NULL) {
 		LogMallocFailure(file, line, function, "gsh_malloc");
@@ -111,7 +122,7 @@ gsh_malloc_aligned__(size_t a, size_t n,
 #ifdef __APPLE__
 	p = valloc(n);
 #else
-	if (posix_memalign(&p, a, n) != 0)
+	if (je_posix_memalign(&p, a, n) != 0)
 		p = NULL;
 #endif
 	if (p == NULL) {
@@ -142,7 +153,7 @@ static inline void *
 gsh_calloc__(size_t n, size_t s,
 	     const char *file, int line, const char *function)
 {
-	void *p = calloc(n, s);
+	void *p = je_calloc(n, s);
 
 	if (p == NULL) {
 		LogMallocFailure(file, line, function, "gsh_calloc");
@@ -175,7 +186,7 @@ static inline void *
 gsh_realloc__(void *p, size_t n,
 	      const char *file, int line, const char *function)
 {
-	void *p2 = realloc(p, n);
+	void *p2 = je_realloc(p, n);
 
 	if (n != 0 && p2 == NULL) {
 		LogMallocFailure(file, line, function, "gsh_realloc");
@@ -205,14 +216,20 @@ gsh_realloc__(void *p, size_t n,
 static inline char *
 gsh_strdup__(const char *s, const char *file, int line, const char *function)
 {
-	char *p = strdup(s);
+	if (!s) {
+		LogMallocFailure(file, line, function, "gsh_strdup");
+		abort();
+	}
+	size_t len = 1 + strlen(s);
+
+	char *p = je_malloc(len);
 
 	if (p == NULL) {
 		LogMallocFailure(file, line, function, "gsh_strdup");
 		abort();
 	}
 
-	return p;
+	return strncpy(p, s, len);
 }
 
 #define gsh_strdup(s) gsh_strdup__(s, __FILE__, __LINE__, __func__)
@@ -296,7 +313,7 @@ gsh_memdup__(const void *s, const size_t l, const char *file, int line,
 static inline void
 gsh_free(void *p)
 {
-	free(p);
+	je_free(p);
 }
 
 /**
@@ -312,7 +329,7 @@ gsh_free(void *p)
 static inline void
 gsh_free_size(void *p, size_t n __attribute__ ((unused)))
 {
-	free(p);
+	je_free(p);
 }
 
 /**

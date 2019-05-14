@@ -1146,7 +1146,7 @@ out:
 	if (conf_errs.buf)
 		gsh_free(conf_errs.buf);
 	if (err_detail != NULL)
-		gsh_free(err_detail);
+		free(err_detail);
 	config_Free(config_struct);
 	return status;
 }
@@ -1666,7 +1666,7 @@ out:
 	if (conf_errs.buf)
 		gsh_free(conf_errs.buf);
 	if (err_detail != NULL)
-		gsh_free(err_detail);
+		free(err_detail);
 	config_Free(config_struct);
 	return status;
 }

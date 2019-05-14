@@ -570,7 +570,7 @@ gsh_control_addexport(char *exportFilePath, char *export_expr, char *error)
 
 out:
 	if (err_detail != NULL)
-		gsh_free(err_detail);
+		free(err_detail);
 	config_Free(config_struct);
 	return status;
 }
