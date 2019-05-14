@@ -299,6 +299,11 @@ int nfs3_write(nfs_arg_t *arg, struct svc_req *req, nfs_res_t *res)
 
 	write_data.res = res;
 
+	/** [NEDGE FSAL SPECIAL]
+	 * Pass the buffer ownership to FSAL. FSAL will free it when done.
+	 */
+	arg->arg_write3.data.data_val = NULL;
+
 	obj->obj_ops->write2(obj, true, nfs3_write_cb, write_arg, &write_data);
 	return write_data.rc;
 
