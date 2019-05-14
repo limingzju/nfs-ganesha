@@ -1,3 +1,4 @@
 [submodule "src/libntirpc"]
 	path = src/libntirpc
-	url = https://github.com/nfs-ganesha/ntirpc.git
+	url = https://github.com/Nexenta/ntirpc.git
+	branch = v1.7.3-nexenta
