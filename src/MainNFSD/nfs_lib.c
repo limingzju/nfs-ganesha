@@ -189,7 +189,7 @@ int nfs_libmain(const char *ganesha_conf,
 				errstr != NULL ? errstr : "unknown",
 				nfs_config_path);
 		if (errstr != NULL)
-			gsh_free(errstr);
+			free(errstr);
 	}
 
 	if (read_log_config(nfs_config_struct, &err_type) < 0) {

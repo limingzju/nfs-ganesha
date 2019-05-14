@@ -130,6 +130,10 @@ pthread_t _9p_rdma_dispatcher_thrid;
 pthread_t nfs_rdma_dispatcher_thrid;
 #endif
 
+#ifdef USE_DBUS
+pthread_t gsh_dbus_thrid;
+#endif
+
 char *nfs_config_path = GANESHA_CONFIG_PATH;
 
 char *nfs_pidfile_path = GANESHA_PIDFILE_PATH;

@@ -42,6 +42,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
+#ifdef USE_JE_MALLOC
+#include <jemalloc/jemalloc.h>
+#else
+#define je_free		free
+#define je_posix_memalign	posix_memalign
+#define je_malloc	malloc
+#define je_calloc	calloc
+#define je_realloc	realloc
+#endif
+
 #include "log.h"
 
 /**
@@ -75,7 +86,7 @@ static inline void *
 gsh_malloc__(size_t n,
 	     const char *file, int line, const char *function)
 {
-	void *p = malloc(n);
+	void *p = je_malloc(n);
 
 	if (p == NULL) {
 		LogMallocFailure(file, line, function, "gsh_malloc");
@@ -86,7 +97,7 @@ gsh_malloc__(size_t n,
 }
 
 #define gsh_malloc(n) ({ \
-		void *p_ = malloc(n); \
+		void *p_ = je_malloc(n); \
 		if (p_ == NULL) { \
 			abort(); \
 		} \
@@ -117,7 +128,7 @@ gsh_malloc_aligned__(size_t a, size_t n,
 #ifdef __APPLE__
 	p = valloc(n);
 #else
-	if (posix_memalign(&p, a, n) != 0)
+	if (je_posix_memalign(&p, a, n) != 0)
 		p = NULL;
 #endif
 	if (p == NULL) {
@@ -130,7 +141,7 @@ gsh_malloc_aligned__(size_t a, size_t n,
 
 #define gsh_malloc_aligned(a, n) ({ \
 		void *p_; \
-		if (posix_memalign(&p_, a, n) != 0) { \
+		if (je_posix_memalign(&p_, a, n) != 0) { \
 			abort(); \
 		} \
 		p_; \
@@ -153,7 +164,7 @@ static inline void *
 gsh_calloc__(size_t n, size_t s,
 	     const char *file, int line, const char *function)
 {
-	void *p = calloc(n, s);
+	void *p = je_calloc(n, s);
 
 	if (p == NULL) {
 		LogMallocFailure(file, line, function, "gsh_calloc");
@@ -164,7 +175,7 @@ gsh_calloc__(size_t n, size_t s,
 }
 
 #define gsh_calloc(n, s) ({ \
-		void *p_ = calloc(n, s); \
+		void *p_ = je_calloc(n, s); \
 		if (p_ == NULL) { \
 			abort(); \
 		} \
@@ -192,7 +203,7 @@ static inline void *
 gsh_realloc__(void *p, size_t n,
 	      const char *file, int line, const char *function)
 {
-	void *p2 = realloc(p, n);
+	void *p2 = je_realloc(p, n);
 
 	if (n != 0 && p2 == NULL) {
 		LogMallocFailure(file, line, function, "gsh_realloc");
@@ -202,35 +213,111 @@ gsh_realloc__(void *p, size_t n,
 	return p2;
 }
 
-#define gsh_realloc(p, n) ({ \
-		void *p2_ = realloc(p, n); \
-		if (n != 0 && p2_ == NULL) { \
-			abort(); \
-		} \
-		p2_; \
-	})
+#define gsh_realloc(p, n) gsh_realloc__(p, n, __FILE__, __LINE__, __func__)
 
-#define gsh_strdup(s) ({ \
-		char *p_ = strdup(s); \
-		if (p_ == NULL) { \
-			abort(); \
-		} \
-		p_; \
-	})
+/**
+ * @brief Duplicate a string to newly allocated memory
+ *
+ * This function allocates a new block of memory sufficient to contain
+ * the supplied string, then copies the string into that buffer.
+ *
+ * This function aborts if no memory is available.
+ *
+ * @param[in] s  String to duplicate
+ * @param[in] file Calling source file
+ * @param[in] line Calling source line
+ * @param[in] function Calling source function
+ *
+ * @return Pointer to new copy of string.
+ */
+static inline char *
+gsh_strdup__(const char *s, const char *file, int line, const char *function)
+{
+	if (!s) {
+		LogMallocFailure(file, line, function, "gsh_strdup");
+		abort();
+	}
+	size_t len = 1 + strlen(s);
 
-#define gsh_strldup(s, l, n) ({ \
-		char *p_ = (char *) gsh_malloc(l+1); \
-		memcpy(p_, s, l); \
-		p_[l] = '\0'; \
-		*n = l + 1; \
-		p_; \
-	})
+	char *p = je_malloc(len);
 
-#define gsh_memdup(s, l) ({ \
-		void *p_ = gsh_malloc(l); \
-		memcpy(p_, s, l); \
-		p_; \
-	})
+	if (p == NULL) {
+		LogMallocFailure(file, line, function, "gsh_strdup");
+		abort();
+	}
+
+	return strncpy(p, s, len);
+}
+
+#define gsh_strdup(s) gsh_strdup__(s, __FILE__, __LINE__, __func__)
+
+/**
+ * @brief Duplicate a string to newly allocated memory (bounded)
+ *
+ * This function allocates a new block of memory sufficient to contain
+ * the supplied string, then copies the string into that buffer.
+ *
+ * This function aborts if no memory is available.
+ *
+ * The returned copied value includes the terminating NUL.
+ *
+ * @param[in] s String to duplicate
+ * @param[in] length Size of the returned string shall be <= length+1
+ * @param[out] copied Number of bytes copied
+ * @param[in] file Calling source file
+ * @param[in] line Calling source line
+ * @param[in] function Calling source function
+ *
+ * @return Pointer to new copy of string.
+ */
+static inline char *
+gsh_strldup__(const char *s, size_t length, size_t *copied,
+	     const char *file, int line, const char *function)
+{
+	char *p = (char *) gsh_malloc__(length+1, file, line, function);
+
+	if (p == NULL) {
+		LogMallocFailure(file, line, function, "gsh_strldup");
+		abort();
+	}
+
+	memcpy(p, s, length);
+	p[length] = '\0';
+	*copied = length + 1;
+
+	return p;
+}
+
+#define gsh_strldup(s, l, n) gsh_strldup__(s, l, n, __FILE__, __LINE__, \
+						__func__)
+
+/**
+ * @brief Duplicate a blob of memory
+ *
+ * This function allocates a new block of memory sufficient to contain
+ * the supplied data, then copies the data into that buffer.
+ *
+ * This function aborts if no memory is available.
+ *
+ * @param[in] s  Pointer to data to be copied
+ * @param[in] l  Length of data
+ * @param[in] file Calling source file
+ * @param[in] line Calling source line
+ * @param[in] function Calling source function
+ *
+ * @return Pointer to new copy of data
+ */
+static inline void *
+gsh_memdup__(const void *s, const size_t l, const char *file, int line,
+		const char *function)
+{
+	void *p = gsh_malloc__(l, file, line, function);
+
+	memcpy(p, s, l);
+	return p;
+}
+
+#define gsh_memdup(s, l) gsh_memdup__(s, l, __FILE__, __LINE__, __func__)
 
 /**
  * @brief Free a block of memory
@@ -243,7 +330,7 @@ gsh_realloc__(void *p, size_t n,
 static inline void
 gsh_free(void *p)
 {
-	free(p);
+	je_free(p);
 }
 
 /**
@@ -259,7 +346,7 @@ gsh_free(void *p)
 static inline void
 gsh_free_size(void *p, size_t n __attribute__ ((unused)))
 {
-	free(p);
+	je_free(p);
 }
 
 /**
