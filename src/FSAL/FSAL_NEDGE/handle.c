@@ -570,7 +570,7 @@ nedge_readdir(struct fsal_obj_handle *dir_hdl, fsal_cookie_t *whence,
 	if (whence == NULL) {
 		strcpy(start, "");
 	} else {
-		if (*whence < 1000) {
+		if (*whence <= CCOW_FSIO_ROOT_INODE) {
 			strcpy(start, "");
 		} else {
 			int res = ccow_fsio_find_list(myself->ci, h2inode(myself), *whence, start, 1024);
